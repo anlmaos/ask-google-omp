@@ -73,11 +73,17 @@ cd anima-use-google
 
 #### Firefox
 
-1. Register the native-messaging host (writes the OS-specific Firefox manifest):
+1. Register the native-messaging host:
 
    ```bash
    node native-host/install-host.cjs
    ```
+
+   This writes the Firefox native-host registration for your OS:
+
+   - Linux: `~/.mozilla/native-messaging-hosts/com.google.ai.search.json`
+   - macOS: `~/Library/Application Support/Mozilla/NativeMessagingHosts/com.google.ai.search.json`
+   - Windows: `HKCU\Software\Mozilla\NativeMessagingHosts\com.google.ai.search`, pointing at `%USERPROFILE%\.anima-use-google\com.google.ai.search.json`
 
 2. Load the extension in Firefox:
 
@@ -94,13 +100,17 @@ npx web-ext build --source-dir extension --overwrite-dest
 # Then sign or load via about:config xpinstall.signatures.required=false (Dev/Nightly)
 ```
 
-#### Chrome / Chromium
+#### Chrome / Chromium / Brave
 
-Chrome MV3 uses a service worker background and native messaging `allowed_origins`, so you need the extension id before installing the native host:
+Chromium-based browsers use the `extension-chromium/` sidecar. Their native
+messaging manifests require `allowed_origins`, so you need the extension id
+before installing the native host.
 
 1. Load the unpacked extension:
 
-   - Open `chrome://extensions` or `chromium://extensions`.
+   - Chrome: open `chrome://extensions`.
+   - Chromium: open `chromium://extensions`.
+   - Brave: open `brave://extensions`.
    - Enable **Developer mode**.
    - Click **Load unpacked** and choose `extension-chromium/`.
    - Copy the generated extension id.
@@ -108,14 +118,36 @@ Chrome MV3 uses a service worker background and native messaging `allowed_origin
 2. Register the native-messaging host:
 
    ```bash
-   node native-host/install-chrome-host.cjs --extension-id <chrome-extension-id>
-   # Optional for Chromium instead of Google Chrome:
-   node native-host/install-chrome-host.cjs --browser chromium --extension-id <chrome-extension-id>
+   # Google Chrome
+   node native-host/install-chrome-host.cjs --browser chrome --extension-id <extension-id>
+
+   # Chromium
+   node native-host/install-chrome-host.cjs --browser chromium --extension-id <extension-id>
+
+   # Brave
+   node native-host/install-chrome-host.cjs --browser brave --extension-id <extension-id>
    ```
 
-3. Reload the extension so `chrome.runtime.connectNative("com.google.ai.search")` sees the manifest.
+   The installer writes the manifest or registry entry for your selected browser:
 
-### Switching between Firefox and Chromium sidecars
+   - Chrome on Linux: `~/.config/google-chrome/NativeMessagingHosts/com.google.ai.search.json`
+   - Chrome on macOS: `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.google.ai.search.json`
+   - Chrome on Windows: `HKCU\Software\Google\Chrome\NativeMessagingHosts\com.google.ai.search`
+   - Chromium on Linux: `~/.config/chromium/NativeMessagingHosts/com.google.ai.search.json`
+   - Chromium on macOS: `~/Library/Application Support/Chromium/NativeMessagingHosts/com.google.ai.search.json`
+   - Chromium on Windows: `HKCU\Software\Chromium\NativeMessagingHosts\com.google.ai.search`
+   - Brave on Linux: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
+   - Brave on macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
+   - Brave on Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.google.ai.search`
+
+   On Windows, the manifest JSON itself is written under
+   `%USERPROFILE%\.anima-use-google\<browser>\com.google.ai.search.json`, and
+   the registry key points the browser at that file.
+
+3. Reload the extension so `chrome.runtime.connectNative("com.google.ai.search")`
+   sees the manifest.
+
+### Switching between Firefox and Chromium-based sidecars
 
 The MCP server always connects to the first browser native host listening on
 `127.0.0.1:51784`. When switching browsers during development, make sure the
@@ -146,25 +178,9 @@ old sidecar is not still owning that port.
 
    # Chromium
    node native-host/install-chrome-host.cjs --browser chromium --extension-id <chrome-extension-id>
-   ```
 
-   Brave uses the Chromium extension. On Linux, write the Chrome-style native
-   messaging manifest to:
-
-   ```text
-   ~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json
-   ```
-
-   with `allowed_origins` set to your Brave extension id, for example:
-
-   ```json
-   {
-     "name": "com.google.ai.search",
-     "description": "Anima-use-google native messaging bridge",
-     "path": "/absolute/path/to/anima-use-google/native-host/run-host.sh",
-     "type": "stdio",
-     "allowed_origins": ["chrome-extension://<brave-extension-id>/"]
-   }
+   # Brave
+   node native-host/install-chrome-host.cjs --browser brave --extension-id <brave-extension-id>
    ```
 
 4. Reload the chosen browser extension so it reconnects to native messaging.
@@ -216,9 +232,9 @@ npm link          # then `anima-use-google` on PATH
 Project layout:
 
 - `src/` + `dist/` - TypeScript MCP server publishing as `anima-use-google`.
-- `native-host/` - `host.js` bridges browser native messaging <-> localhost TCP; `install-host.cjs` writes the Firefox manifest; `install-chrome-host.cjs` writes the Chrome/Chromium manifest.
+- `native-host/` - `host.js` bridges browser native messaging <-> localhost TCP; `install-host.cjs` writes the Firefox manifest; `install-chrome-host.cjs` writes the Chrome/Chromium/Brave manifest.
 - `extension/` - Firefox MV3 sidecar.
-- `extension-chromium/` - Chrome/Chromium MV3 sidecar using a service worker background.
+- `extension-chromium/` - Chrome/Chromium/Brave MV3 sidecar using a service worker background.
 - Selector constants live in each extension's `src/selectors.js` - update both if Google's AI Mode DOM shifts.
 
 ## Tuning

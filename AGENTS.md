@@ -57,11 +57,11 @@ npm run build
 npm pack --dry-run
 ```
 
-For extension changes, also inspect or test the browser-specific manifest and native-host installer path. Chrome/Chromium native messaging requires an extension id in `allowed_origins`, so use `native-host/install-chrome-host.cjs --extension-id <id>` after loading the unpacked Chromium extension and obtaining its id.
+For extension changes, also inspect or test the browser-specific manifest and native-host installer path. Chrome/Chromium/Brave native messaging requires an extension id in `allowed_origins`, so use `native-host/install-chrome-host.cjs --browser <chrome|chromium|brave> --extension-id <id>` after loading the unpacked Chromium extension and obtaining its id.
 
 ## Switching Browser Sidecars For E2E Tests
 
-The MCP server talks to whichever native host is listening on `127.0.0.1:51784`. Do not claim a Chrome/Chromium test passed if a Firefox-started host is still running.
+The MCP server talks to whichever native host is listening on `127.0.0.1:51784`. Do not claim a Chrome/Chromium/Brave test passed if a Firefox-started host is still running.
 
 Before switching browsers:
 
@@ -84,22 +84,23 @@ node native-host/install-host.cjs
 
 Then load `extension/manifest.json` from `about:debugging#/runtime/this-firefox` and restart or reload Firefox.
 
-For Chrome or Chromium, load `extension-chromium/` as an unpacked extension, copy the generated extension id, and run:
+For Chrome, Chromium, or Brave, load `extension-chromium/` as an unpacked extension, copy the generated extension id, and run:
 
 ```bash
 node native-host/install-chrome-host.cjs --browser chrome --extension-id <id>
 node native-host/install-chrome-host.cjs --browser chromium --extension-id <id>
+node native-host/install-chrome-host.cjs --browser brave --extension-id <id>
 ```
 
-Brave uses the Chromium extension, but its Linux native-messaging manifest lives at:
+Brave uses the Chromium extension. Its native-messaging registration locations are:
 
-```text
-~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json
-```
+- Linux: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
+- macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
+- Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.google.ai.search`
 
-Use a Chrome-style manifest whose `allowed_origins` contains `chrome-extension://<brave-extension-id>/`, then reload the Brave extension from `brave://extensions`.
+The installer writes those locations for `--browser brave`; then reload the Brave extension from `brave://extensions`.
 
-After reloading, confirm the active host. A Chromium-side host should show the extension origin as an argument, for example:
+After reloading, confirm the active host. A Chromium-based host should show the extension origin as an argument, for example:
 
 ```text
 node /path/to/native-host/host.js chrome-extension://<extension-id>/
