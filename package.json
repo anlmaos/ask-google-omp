@@ -1,7 +1,7 @@
 {
   "name": "anima-use-google",
-  "version": "0.1.4",
-  "description": "MCP server that runs Google AI Mode searches via a Firefox sidecar extension using your own logged-in session.",
+  "version": "0.1.5",
+  "description": "MCP server that runs Google AI Mode searches via a browser sidecar extension using your own logged-in session.",
   "type": "module",
   "license": "MIT",
   "bin": {
@@ -12,12 +12,15 @@
     "dist",
     "native-host",
     "extension",
+    "extension-chromium",
+    "AGENTS.md",
     "README.md"
   ],
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "build": "tsc -p .",
     "typecheck": "tsc -p . --noEmit",
+    "prepare": "tsc -p .",
     "prepublishOnly": "tsc -p ."
   },
   "dependencies": {
