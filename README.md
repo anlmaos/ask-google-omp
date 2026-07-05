@@ -1,8 +1,14 @@
-# anima-use-google
+<div align=center>
 
-MCP server + browser sidecar extension that lets AI agents (Claude Code, Cursor, etc.) run [Google AI Mode](https://blog.google/products/search/ai-mode-search/) searches using your **own logged-in browser session**, then return the synthesized answer and citations as an MCP tool result.
+# [anima](https://github.com/animaios/anima)-use-google
 
-No headless browser, no stealth tricks, no CAPTCHA fighting. Your real browser profile does the work.
+### MCP server + browser sidecar extension that lets AI agents run [Google AI Mode](https://blog.google/products/search/ai-mode-search/) searches using your **own logged-in browser session**, then return the synthesized answer and citations as an MCP tool result.
+
+<img width="256" height="384" alt="AnimAIOS mascot" src="https://github.com/user-attachments/assets/8df6553c-e975-4ac4-b32c-fc73cdf0eebd" />
+
+#### No headless browser, no stealth tricks, no CAPTCHA fighting. Your real browser profile does the work.
+
+</div>
 
 ## Quickest path (5 minutes)
 
@@ -243,4 +249,4 @@ Cutoff markers (end-of-answer disclaimers, language-aware) and citation selector
 
 ## License
 
-MIT. See `LICENSE`.
+unLICENSE. See `LICENSE`.
