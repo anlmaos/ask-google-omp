@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Registers the native-messaging host with Chrome/Chromium-compatible browsers.
+ * Registers the native-messaging host with Chromium-compatible browsers.
  *
- * Chrome native messaging manifests require `allowed_origins`, which must include
- * the concrete unpacked or store extension id:
+ * Chromium-compatible native messaging manifests require `allowed_origins`,
+ * which must include the concrete unpacked or store extension id:
  *
  *   node native-host/install-chrome-host.cjs --extension-id <32-char-id>
  *   CHROME_EXTENSION_ID=<32-char-id> node native-host/install-chrome-host.cjs
@@ -11,6 +11,7 @@
  * Optional:
  *   --browser chrome     (default)
  *   --browser chromium
+ *   --browser brave
  */
 
 const fs = require("node:fs");
@@ -32,7 +33,22 @@ const BROWSERS = {
     macDir: path.join("Library", "Application Support", "Chromium", "NativeMessagingHosts"),
     winKey: "HKCU\\Software\\Chromium\\NativeMessagingHosts",
   },
+  brave: {
+    linuxDir: path.join(".config", "BraveSoftware", "Brave-Browser", "NativeMessagingHosts"),
+    macDir: path.join(
+      "Library",
+      "Application Support",
+      "BraveSoftware",
+      "Brave-Browser",
+      "NativeMessagingHosts"
+    ),
+    winKey: "HKCU\\Software\\BraveSoftware\\Brave-Browser\\NativeMessagingHosts",
+  },
 };
+
+function supportedBrowsers() {
+  return Object.keys(BROWSERS).join(", ");
+}
 
 function validateExtensionId(extensionId) {
   if (!/^[a-p]{32}$/.test(extensionId || "")) {
@@ -68,7 +84,7 @@ function parseArgs(argv = process.argv, env = process.env) {
   }
   validateExtensionId(extensionId);
   if (!BROWSERS[browser]) {
-    throw new Error(`Unsupported browser: ${browser}. Use chrome or chromium.`);
+    throw new Error(`Unsupported browser: ${browser}. Use ${supportedBrowsers()}.`);
   }
   return { extensionId, browser };
 }
@@ -99,35 +115,62 @@ exec "${nodeBin}" "${HOST_JS}" "$@"
   fs.chmodSync(launcher, 0o755);
 }
 
-function installChromeHost({ extensionId, browser }) {
+function resolveManifestTarget({
+  browser = "chrome",
+  platform = process.platform,
+  homeDir = os.homedir(),
+} = {}) {
   const browserConfig = BROWSERS[browser];
+  if (!browserConfig) {
+    throw new Error(`Unsupported browser: ${browser}. Use ${supportedBrowsers()}.`);
+  }
+
+  if (platform === "linux") {
+    return path.join(homeDir, browserConfig.linuxDir, `${HOST_NAME}.json`);
+  }
+
+  if (platform === "darwin") {
+    return path.join(homeDir, browserConfig.macDir, `${HOST_NAME}.json`);
+  }
+
+  if (platform === "win32") {
+    return {
+      manifestPath: path.win32.join(
+        homeDir,
+        ".anima-use-google",
+        browser,
+        `${HOST_NAME}.json`
+      ),
+      registryKey: `${browserConfig.winKey}\\${HOST_NAME}`,
+    };
+  }
+
+  throw new Error(`Unsupported platform: ${platform}`);
+}
+
+function installChromeHost({ extensionId, browser = "chrome" }) {
   const manifest = buildChromeManifest(extensionId);
   writeLauncher();
 
   if (process.platform === "linux") {
-    const target = path.join(os.homedir(), browserConfig.linuxDir, `${HOST_NAME}.json`);
+    const target = resolveManifestTarget({ browser });
     writeJson(target, manifest);
     return target;
   }
 
   if (process.platform === "darwin") {
-    const target = path.join(os.homedir(), browserConfig.macDir, `${HOST_NAME}.json`);
+    const target = resolveManifestTarget({ browser });
     writeJson(target, manifest);
     return target;
   }
 
   if (process.platform === "win32") {
     const { execSync } = require("node:child_process");
-    const manifestPath = path.join(
-      os.homedir(),
-      ".anima-use-google",
-      browser,
-      `${HOST_NAME}.json`
-    );
+    const { manifestPath, registryKey } = resolveManifestTarget({ browser });
     writeJson(manifestPath, manifest);
     const regValue = manifestPath.replace(/\\/g, "\\\\");
     execSync(
-      `reg add "${browserConfig.winKey}\\${HOST_NAME}" /ve /t REG_SZ /d "${regValue}" /f`
+      `reg add "${registryKey}" /ve /t REG_SZ /d "${regValue}" /f`
     );
     return manifestPath;
   }
@@ -138,13 +181,13 @@ function installChromeHost({ extensionId, browser }) {
 function main() {
   const options = parseArgs();
   const target = installChromeHost(options);
-  console.log(`Chrome native messaging host registered: ${HOST_NAME}`);
+  console.log(`Chromium-compatible native messaging host registered: ${HOST_NAME}`);
   console.log(`Browser:    ${options.browser}`);
   console.log(`Manifest:  ${target}`);
   console.log(`Host:      ${HOST_JS}`);
   console.log(`Extension: chrome-extension://${options.extensionId}/`);
   console.log("");
-  console.log("Reload the Chromium extension after installing the host manifest.");
+  console.log(`Reload the ${options.browser} extension after installing the host manifest.`);
 }
 
 if (require.main === module) {
@@ -160,5 +203,6 @@ module.exports = {
   buildChromeManifest,
   installChromeHost,
   parseArgs,
+  resolveManifestTarget,
   validateExtensionId,
 };

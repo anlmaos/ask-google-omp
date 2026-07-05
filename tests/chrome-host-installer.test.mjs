@@ -25,3 +25,53 @@ test("Chrome native host installer rejects missing extension id", () => {
     /Missing required Chrome extension id/
   );
 });
+
+test("Brave native host installer resolves platform-specific locations", () => {
+  const { parseArgs, resolveManifestTarget } = require("../native-host/install-chrome-host.cjs");
+
+  assert.deepEqual(
+    parseArgs([
+      "node",
+      "script",
+      "--browser",
+      "brave",
+      "--extension-id",
+      "abcdefghijklmnopabcdefghijklmnop",
+    ]),
+    {
+      browser: "brave",
+      extensionId: "abcdefghijklmnopabcdefghijklmnop",
+    }
+  );
+
+  assert.equal(
+    resolveManifestTarget({
+      browser: "brave",
+      platform: "linux",
+      homeDir: "/home/alice",
+    }),
+    "/home/alice/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json"
+  );
+
+  assert.equal(
+    resolveManifestTarget({
+      browser: "brave",
+      platform: "darwin",
+      homeDir: "/Users/alice",
+    }),
+    "/Users/alice/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json"
+  );
+
+  assert.deepEqual(
+    resolveManifestTarget({
+      browser: "brave",
+      platform: "win32",
+      homeDir: "C:\\Users\\Alice",
+    }),
+    {
+      manifestPath: "C:\\Users\\Alice\\.anima-use-google\\brave\\com.google.ai.search.json",
+      registryKey:
+        "HKCU\\Software\\BraveSoftware\\Brave-Browser\\NativeMessagingHosts\\com.google.ai.search",
+    }
+  );
+});

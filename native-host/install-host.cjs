@@ -5,7 +5,7 @@
  * native messaging hosts, pointing at this repo's host.js.
  *
  *   Windows:  registry (HKCU\\Software\\Mozilla\\NativeMessagingHosts\\com.google.ai.search)
- *   macOS:    ~/Library/ApplicationSupport/Mozilla/NativeMessagingHosts/com.google.ai.search.json
+ *   macOS:    ~/Library/Application Support/Mozilla/NativeMessagingHosts/com.google.ai.search.json
  *   Linux:    ~/.mozilla/native-messaging-hosts/com.google.ai.search.json
  *
  * Re-run this any time you move the repo.
@@ -18,6 +18,7 @@ const os = require("node:os");
 const HOST_NAME = "com.google.ai.search";
 const REPO_ROOT = path.resolve(__dirname, "..");
 const HOST_JS = path.join(REPO_ROOT, "native-host", "host.js");
+const FIREFOX_WIN_KEY = `HKCU\\Software\\Mozilla\\NativeMessagingHosts\\${HOST_NAME}`;
 
 function buildManifest() {
   // Firefox requires the host path executable on Unix; we point to a tiny
@@ -37,39 +38,64 @@ function writeJson(file, obj) {
   fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n");
 }
 
+function resolveManifestTarget({
+  platform = process.platform,
+  homeDir = os.homedir(),
+} = {}) {
+  if (platform === "linux") {
+    return path.join(
+      homeDir,
+      ".mozilla",
+      "native-messaging-hosts",
+      `${HOST_NAME}.json`
+    );
+  }
+
+  if (platform === "darwin") {
+    return path.join(
+      homeDir,
+      "Library",
+      "Application Support",
+      "Mozilla",
+      "NativeMessagingHosts",
+      `${HOST_NAME}.json`
+    );
+  }
+
+  if (platform === "win32") {
+    return {
+      manifestPath: path.win32.join(
+        homeDir,
+        ".anima-use-google",
+        `${HOST_NAME}.json`
+      ),
+      registryKey: FIREFOX_WIN_KEY,
+    };
+  }
+
+  throw new Error(`Unsupported platform: ${platform}`);
+}
+
 function installLinux() {
-  const dir = path.join(os.homedir(), ".mozilla", "native-messaging-hosts");
-  const target = path.join(dir, `${HOST_NAME}.json`);
+  const target = resolveManifestTarget();
   writeJson(target, buildManifest());
   return target;
 }
 
 function installMac() {
-  const dir = path.join(
-    os.homedir(),
-    "Library",
-    "ApplicationSupport",
-    "Mozilla",
-    "NativeMessagingHosts"
-  );
-  const target = path.join(dir, `${HOST_NAME}.json`);
+  const target = resolveManifestTarget();
   writeJson(target, buildManifest());
   return target;
 }
 
 function installWindows() {
   const { execSync } = require("node:child_process");
-  const manifestPath = path.join(
-    os.homedir(),
-    ".anima-use-google",
-    `${HOST_NAME}.json`
-  );
+  const { manifestPath, registryKey } = resolveManifestTarget();
   writeJson(manifestPath, buildManifest());
   const regValue = manifestPath.replace(/\\/g, "\\\\");
-  // HKCU\\Software\\Mozilla\\NativeMessagingHosts\\com.google.ai.search
   try {
     execSync(
-      `reg add "HKCU\\Software\\Mozilla\\NativeMessagingHosts\\${HOST_NAME}" /ve /t REG_SZ /d "${regValue}" /f`
+      `reg add "${registryKey}" /ve /t REG_SZ /d "${regValue}" /f`
     );
   } catch (err) {
     throw new Error(`Failed to write registry key: ${err.message}`);
@@ -108,9 +134,16 @@ function main() {
   );
 }
 
-try {
-  main();
-} catch (err) {
-  console.error(`install-host: ${err.message}`);
-  process.exit(1);
+if (require.main === module) {
+  try {
+    main();
+  } catch (err) {
+    console.error(`install-host: ${err.message}`);
+    process.exit(1);
+  }
 }
+
+module.exports = {
+  buildManifest,
+  resolveManifestTarget,
+};
