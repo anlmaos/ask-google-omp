@@ -42,7 +42,66 @@ const CUTOFF_MARKERS = [
   "Le risposte dell'IA possono contenere errori",
   "possono contenere errori",
   "Ulteriori informazioni",
+  "ИИ может ошибаться",
 ];
+
+// Common Google page chrome labels. These are matched only as full markdown
+// lines/headings to avoid truncating legitimate answer text.
+const UI_CHROME_LINE_MARKERS = [
+  // English
+  "Copy",
+  "Share link",
+  "Good answer",
+  "Bad answer",
+  // Spanish
+  "Copiar",
+  "Compartir enlace",
+  "Buena respuesta",
+  "Mala respuesta",
+  // French
+  "Copier",
+  "Partager le lien",
+  "Bonne réponse",
+  "Mauvaise réponse",
+  // German
+  "Kopieren",
+  "Link teilen",
+  "Gute Antwort",
+  "Schlechte Antwort",
+  // Portuguese
+  "Compartilhar link",
+  "Boa resposta",
+  "Resposta ruim",
+  // Italian
+  "Copia",
+  "Condividi link",
+  "Buona risposta",
+  "Risposta negativa",
+  // Dutch
+  "Kopiëren",
+  "Link delen",
+  "Goed antwoord",
+  "Slecht antwoord",
+  // Russian
+  "Копировать",
+  "Поделиться ссылкой",
+  "Хороший ответ",
+  "Плохой ответ",
+  // Japanese
+  "コピー",
+  "リンクを共有",
+  "良い回答",
+  "悪い回答",
+  // Chinese
+  "复制",
+  "分享链接",
+  "回答很好",
+  "回答不好",
+];
+
+const UI_CHROME_LINE_MARKER_SET = new Set(
+  UI_CHROME_LINE_MARKERS.map((line) => normalizeUiChromeLine(line))
+);
 
 /**
  * Build a Turndown service configured to preserve [CITE-N] markers as plain text and
@@ -105,6 +164,25 @@ function embedCitations(md: string, citations: Citation[]): { markdown: string; 
   return { markdown: out, sources };
 }
 
+function normalizeUiChromeLine(line: string): string {
+  return line
+    .replace(/\u00a0/g, " ")
+    .replace(/^[\s#>*_`-]+/, "")
+    .replace(/[\s*_`]+$/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase();
+}
+
+function cutAtUiChromeLine(md: string): string {
+  const lines = md.split("\n");
+  const cutoffIndex = lines.findIndex((line) =>
+    UI_CHROME_LINE_MARKER_SET.has(normalizeUiChromeLine(line))
+  );
+  if (cutoffIndex === -1) return md;
+  return lines.slice(0, cutoffIndex).join("\n");
+}
+
 function postProcess(md: string): string {
   let s = md;
   // Strip ==highlighting== markers.
@@ -119,6 +197,7 @@ function postProcess(md: string): string {
       break;
     }
   }
+  s = cutAtUiChromeLine(s);
   // Smart line merging for broken sentences.
   s = s.replace(/([^.!?\n])\n([^\n#*0-9-])/g, "$1 $2");
   // Reduce runs of blank lines.

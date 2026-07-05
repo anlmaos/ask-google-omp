@@ -30,6 +30,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { NativeMessagingBridge } from "./native-messaging.js";
 import { parseAiResponse } from "./parser.js";
+import { toGoogleAiModeQuery } from "./query.js";
 
 interface ExtensionResponse {
   requestId: number;
@@ -100,7 +101,10 @@ async function main(): Promise<void> {
     const timeout = typeof args.timeout_ms === "number" ? args.timeout_ms : undefined;
 
     try {
-      const resp = (await bridge.search(args.query, timeout)) as ExtensionResponse;
+      const resp = (await bridge.search(
+        toGoogleAiModeQuery(args.query),
+        timeout
+      )) as ExtensionResponse;
 
       if (!resp || !resp.ok) {
         return toErrorResult(resp?.error || "Extension did not return a successful result");
