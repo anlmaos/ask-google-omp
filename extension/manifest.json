@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Anima-use-google",
+  "version": "0.1.3",
+  "description": "Sidecar extension that runs Google AI Mode searches for the anima-use-google MCP server using your own logged-in session.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "google-ai-search@anima-use-google",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": [],
+        "technical": false,
+        "interaction": false,
+        "privacy_policy": ""
+      }
+    }
+  },
+  "permissions": [
+    "tabs",
+    "scripting",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "https://www.google.com/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.google.com/search*"
+      ],
+      "js": ["src/selectors.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}
