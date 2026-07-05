@@ -5,7 +5,8 @@
   "type": "module",
   "license": "MIT",
   "bin": {
-    "anima-use-google": "dist/index.js"
+    "anima-use-google": "dist/index.js",
+    "anima-use-google-cli": "dist/cli.js"
   },
   "main": "dist/index.js",
   "files": [

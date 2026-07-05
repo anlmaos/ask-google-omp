@@ -12,39 +12,72 @@ This repo provides a local MCP tool, `search_google_ai`, that searches Google AI
 
 Use it extensively. Google AI Mode searches through this tool are effectively unlimited for normal development/research use. Do not replace local code inspection, tests, or compiler output with search results; use search to fill external/contextual gaps, then verify against the repository.
 
-## Codex MCP Workaround
+## Standard Operating Procedure — Local Helper Scripts
 
-Codex in this environment does not directly expose MCP tools, so call the MCP server with the official SDK over stdio. Run from the repo root after `npm run build`.
+The following scripts are installed at `~/.agents/skills/`. Use them when the
+situation calls for it. Soft guidance — apply judgment, not dogma.
+
+### auto-execute (plan runner)
+
+`~/.agents/skills/auto-execute/auto-execute.sh`
+
+Use when the user has an implementation plan (Markdown with `### Task N:` headers)
+and wants it executed task-by-task in isolated sessions.
+
+CLI binaries: any `claude`-prefixed command name. Pass 1-5 for failover redundancy.
+
 
 ```bash
-node --input-type=module <<'EOF'
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-
-const query = process.argv.slice(2).join(' ') || 'Chrome Manifest V3 native messaging restrictions answer in English';
-const transport = new StdioClientTransport({
-  command: 'node',
-  args: ['dist/index.js'],
-  cwd: process.cwd(),
-  stderr: 'pipe',
-});
-transport.stderr?.on('data', (chunk) => process.stderr.write(`[mcp stderr] ${chunk}`));
-
-const client = new Client({ name: 'codex-google-ai-research', version: '0.0.0' });
-try {
-  await client.connect(transport);
-  const result = await client.callTool({
-    name: 'search_google_ai',
-    arguments: { query, timeout_ms: 60000 },
-  });
-  console.log(result.content?.[0]?.text ?? JSON.stringify(result, null, 2));
-} finally {
-  await client.close().catch(() => {});
-}
-EOF
+auto-execute.sh [--max-turns 80] [--task-timeout 600] [--context-limit 100000]
+                [--start-task N] [--log-dir logs/auto-execute]
+                <claude-binary> [claude-binary-2..5] <plan-input>
 ```
 
-For multiple searches in one process, keep the same client open and call `client.callTool(...)` repeatedly. Prefer precise, research-style queries and include `answer in English` when the language matters, although the MCP server also appends an English-answer instruction.
+Plan input: path to plan file, partial match against `docs/plans/`, or `latest` for
+most recent.
+
+Behavior: runs each task as `claude -p "/auto-execute task-N.md"`, monitors for
+timeout/context-limit, verifies exit+commit+tree-clean after each step, retries
+with next binary on failure. Ctrl+C is trapped cleanly.
+
+Do not use for single-shot tasks, exploratory work, or when the user wants to
+review each step manually.
+
+### commit (git committer)
+
+`~/.agents/skills/commit/SKILL.md` — Claude Code skill, triggered via `/commit`
+
+Use when the user says "commit" or "save this" or asks for a commit message.
+Generates `type: description` format, runs `git diff --staged`, prompts for staging
+if nothing staged.
+
+Alternative without skill invocation:
+
+```bash
+git diff --staged → git add . → git commit -m "type: description"
+```
+
+
+### humanizer (writer)
+
+`~/.agents/skills/humanizer/SKILL.md` — Claude Code skill, triggered via
+`/humanizer`
+
+Use when the user asks to "clean up" writing, "make this sound natural", "de-AI
+this", or similar. Applies 25 pattern replacements (significance inflation, copula
+avoidance, chatbot artifacts, em dash overuse, etc.) with personality-injection
+pass. Repo-agnostic — works on any prose.
+
+### When to invoke automatically
+
+| User says | Invoke |
+|-----------|--------|
+| "run the plan" / "execute tasks from <file>" | auto-execute |
+| "commit this" / "commit changes" | commit skill or manual |
+| "fix this text" / "make it sound human" / "de-AI" | humanizer skill |
+
+Platform check: these scripts assume Linux/macOS. On Windows, use PowerShell
+equivalents (not yet ported).
 
 ## Local Verification Still Wins
 
