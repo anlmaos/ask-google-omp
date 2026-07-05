@@ -10,6 +10,8 @@
  */
 
 const NATIVE_HOST = "com.google.ai.search";
+const CONTENT_SCRIPT_READY_TIMEOUT_MS = 15000;
+const CONTENT_SCRIPT_RETRY_INTERVAL_MS = 250;
 
 let port = null;
 let pendingByRequest = new Map(); // requestId -> { tabId, timeoutMs, watchdog }
@@ -78,13 +80,19 @@ async function startSearch(requestId, query, timeoutMs) {
   await waitForTabLoaded(tab.id, 15000);
   if (!pendingByRequest.has(requestId)) return;
 
+  const runSearchMessage = {
+    type: "run-search",
+    requestId,
+    query,
+    timeoutMs: effectiveTimeoutMs,
+  };
+
   try {
-    await browser.tabs.sendMessage(tab.id, {
-      type: "run-search",
-      requestId,
-      query,
-      timeoutMs: effectiveTimeoutMs,
-    });
+    await sendRunSearchWhenReady(
+      tab.id,
+      runSearchMessage,
+      CONTENT_SCRIPT_READY_TIMEOUT_MS
+    );
   } catch (err) {
     const entry = pendingByRequest.get(requestId);
     if (!entry) return;
@@ -99,6 +107,32 @@ async function startSearch(requestId, query, timeoutMs) {
       null
     );
   }
+}
+
+async function sendRunSearchWhenReady(tabId, message, timeoutMs) {
+  const maxAttempts = Math.max(
+    1,
+    Math.ceil(timeoutMs / CONTENT_SCRIPT_RETRY_INTERVAL_MS)
+  );
+  let lastError = null;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      await browser.tabs.sendMessage(tabId, message);
+      return;
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts - 1) {
+        await sleep(CONTENT_SCRIPT_RETRY_INTERVAL_MS);
+      }
+    }
+  }
+
+  throw lastError || new Error("content script did not become ready");
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function waitForTabLoaded(tabId, timeoutMs) {

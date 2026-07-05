@@ -47,9 +47,13 @@ function checkAiModeAvailable() {
   return true;
 }
 
-async function waitForAiCompletion() {
+async function waitForAiCompletion(timeoutMs) {
   const start = Date.now();
-  const deadline = start + OVERALL_COMPLETION_TIMEOUT;
+  const waitTimeoutMs = Math.min(
+    timeoutMs || OVERALL_COMPLETION_TIMEOUT,
+    OVERALL_COMPLETION_TIMEOUT
+  );
+  const deadline = start + waitTimeoutMs;
 
   for (;;) {
     const svgEl = document.querySelector(AI_COMPLETION_BUTTON_SVG);
@@ -153,14 +157,18 @@ function extractCitationsAndHtml() {
 }
 
 function respond(requestId, ok, error, html, citations) {
-  browser.runtime.sendMessage({
+  const message = {
     type: "search-result",
     requestId,
     ok,
     error: error || null,
     html: html || null,
     citations: citations || null,
-  });
+  };
+  try {
+    const sent = browser.runtime.sendMessage(message);
+    if (sent && typeof sent.catch === "function") sent.catch(() => {});
+  } catch { /* cannot report without runtime messaging */ }
 }
 
 async function runSearch(requestId, query, timeoutMs) {
@@ -174,12 +182,12 @@ async function runSearch(requestId, query, timeoutMs) {
   const completionDeadline = Date.now() + (timeoutMs || 60000);
   let completion;
   try {
-    completion = await waitForAiCompletion();
+    completion = await waitForAiCompletion(timeoutMs || 60000);
   } catch (err) {
     respond(requestId, false, `Completion wait failed: ${err.message}`, null, null);
     return;
   }
-  if (Date.now() > completionDeadline) {
+  if (Date.now() >= completionDeadline) {
     respond(requestId, false, "Timed out waiting for AI Mode to generate a response", null, null);
     return;
   }
@@ -194,5 +202,13 @@ async function runSearch(requestId, query, timeoutMs) {
 
 browser.runtime.onMessage.addListener((msg) => {
   if (!msg || msg.type !== "run-search") return;
-  runSearch(msg.requestId, msg.query, msg.timeoutMs);
+  runSearch(msg.requestId, msg.query, msg.timeoutMs).catch((err) => {
+    respond(
+      msg.requestId,
+      false,
+      `Content script failed: ${err && err.message ? err.message : String(err)}`,
+      null,
+      null
+    );
+  });
 });

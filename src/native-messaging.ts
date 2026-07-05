@@ -15,6 +15,9 @@ import * as net from "node:net";
 const HOST_PORT = Number(process.env.GOOGLE_AI_HOST_PORT || 51784);
 const HOST_HOST = process.env.GOOGLE_AI_HOST_HOST || "127.0.0.1";
 const DEFAULT_TIMEOUT_MS = Number(process.env.GOOGLE_AI_TIMEOUT_MS || 60000);
+const BRIDGE_RESPONSE_GRACE_MS = Number(
+  process.env.GOOGLE_AI_BRIDGE_GRACE_MS || 30000
+);
 
 interface PendingRequest {
   resolve: (payload: unknown) => void;
@@ -130,7 +133,7 @@ export class NativeMessagingBridge {
             `Search timed out after ${timeoutMs}ms (no response from extension)`
           )
         );
-      }, timeoutMs + 5000);
+      }, timeoutMs + BRIDGE_RESPONSE_GRACE_MS);
 
       this.pending.set(requestId, { resolve, reject, timer });
 

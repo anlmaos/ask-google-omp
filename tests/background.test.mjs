@@ -12,12 +12,14 @@ function createHarness(options = {}) {
   const {
     initialTabStatus = "loading",
     sendMessageError = null,
+    sendMessageFailuresBeforeSuccess = 0,
   } = options;
 
   let nativeMessageListener = null;
   let extensionMessageListener = null;
   const tabId = 100;
   let tabStatus = initialTabStatus;
+  let sendMessageFailuresRemaining = sendMessageFailuresBeforeSuccess;
   const portMessages = [];
   const sendMessageCalls = [];
   const removedTabs = [];
@@ -74,6 +76,10 @@ function createHarness(options = {}) {
         },
         async sendMessage(id, message) {
           sendMessageCalls.push({ tabId: id, message: JSON.parse(JSON.stringify(message)) });
+          if (sendMessageFailuresRemaining > 0) {
+            sendMessageFailuresRemaining -= 1;
+            throw new Error("Could not establish connection. Receiving end does not exist.");
+          }
           if (sendMessageError) throw new Error(sendMessageError);
         },
         async remove(id) {
@@ -115,8 +121,20 @@ function createHarness(options = {}) {
       timers.delete(timer[0]);
       timer[1].callback();
     },
+    async runAllTimersByDelay(delay, limit = 100) {
+      let count = 0;
+      for (;;) {
+        await this.flushAsync();
+        const timer = [...timers.entries()].find(([, value]) => value.delay === delay);
+        if (!timer) return count;
+        timers.delete(timer[0]);
+        timer[1].callback();
+        count += 1;
+        assert.ok(count <= limit, `ran more than ${limit} timers with delay ${delay}`);
+      }
+    },
     async flushAsync() {
-      for (let i = 0; i < 5; i++) await Promise.resolve();
+      for (let i = 0; i < 20; i++) await Promise.resolve();
     },
   };
 }
@@ -174,7 +192,10 @@ test("background returns an explicit error and closes the tab when content dispa
   await harness.flushAsync();
   harness.fireTabComplete();
   await harness.flushAsync();
+  await harness.runAllTimersByDelay(250);
+  await harness.flushAsync();
 
+  assert.ok(harness.sendMessageCalls.length > 1);
   assert.deepEqual(harness.removedTabs, [100]);
   assert.equal(harness.portMessages.length, 1);
   assert.deepEqual(harness.portMessages[0], {
@@ -185,6 +206,27 @@ test("background returns an explicit error and closes the tab when content dispa
     html: null,
     citations: null,
   });
+});
+
+test("background retries run-search dispatch until the content listener is ready", async () => {
+  const harness = createHarness({
+    initialTabStatus: "complete",
+    sendMessageFailuresBeforeSuccess: 1,
+  });
+
+  harness.dispatchNative({ requestId: 11, query: "retry", timeoutMs: 8000 });
+  await harness.flushAsync();
+
+  assert.equal(harness.sendMessageCalls.length, 1);
+  assert.deepEqual(harness.portMessages, []);
+  assert.deepEqual(harness.removedTabs, []);
+
+  harness.runTimerByDelay(250);
+  await harness.flushAsync();
+
+  assert.equal(harness.sendMessageCalls.length, 2);
+  assert.deepEqual(harness.portMessages, []);
+  assert.deepEqual(harness.removedTabs, []);
 });
 
 test("background closes the tab on watchdog timeout and does not dispatch afterward", async () => {
