@@ -210,6 +210,67 @@ Ask your agent normally:
 
 The agent calls `search_google_ai`, your browser sidecar opens the `udm=50` search in your profile, the extension parses the AI answer with inline `[1][2]` citations, and the agent gets a grounded markdown response.
 
+## anima-use-google-cli
+
+The `anima-use-google-cli` binary searches Google AI Mode directly through the native host on `127.0.0.1:51784`. It does **not** spawn the MCP server (`dist/index.js`) and has zero dependency on the `@modelcontextprotocol/sdk` — per invocation it runs as a single pure-Node process.
+
+```
+anima-use-google-cli <query>
+  ├─ toGoogleAiModeQuery(query)         appends "answer in English" unless already requested
+  ├─ new NativeMessagingBridge()        raw TCP to 127.0.0.1:51784 (4-byte LE prefix + JSON)
+  ├─ bridge.search(query, timeoutMs)    framed request to host.js → extension → Google AI Mode
+  ├─ parseAiResponse(html, citations)  cheerio + turndown → grounded markdown
+  └─ stdout: markdown | --json | --raw ; stderr: errors ; exit 0/1/2
+```
+
+Designed for harnesses and people who don't want the MCP client interface. The CLI runs on Node 20+ with no new packages — cross-platform by construction (`bridge.dispose()` always runs in a `finally`, no lingering socket or child process).
+
+```bash
+# Positional (space-joined)
+anima-use-google-cli <query>
+
+# --query flag form is equivalent to positional
+anima-use-google-cli --query "your query"
+
+# Piped input
+echo "your query" | anima-use-google-cli --stdin
+
+# Or omit the flag — piped stdin is auto-detected when no positional or --query is given
+```
+
+Output modes:
+
+- **Default** — parsed markdown answer (inline `[n]` citations + `## Sources` section) goes to **stdout**; errors go to **stderr**, exit 1.
+- **`--json`** — a single JSON document to **stdout** and nothing else on any stream. Success: `{"ok":true,"markdown":"...","citations":[...]}` (exit 0). Any failure: `{"ok":false,"error":"..."}` (exit 1). The `citations` field is always present — an empty array when there are none.
+- **`--raw`** — the verbatim host frame (`{"requestId",ok,"html","citations",error}`) to **stdout**; no `parseAiResponse` applied (the `html` is the raw host HTML containing `[CITE-N]` markers). Exit 0 on success, 1 on failure; nothing on stderr.
+- **Precedence** — when `--json` and `--raw` are both passed, `--raw` wins (consistent on success and failure paths).
+
+The `status` subcommand probes reachability without sending a search:
+
+```bash
+anima-use-google-cli status   # --json and --raw are accepted but produce the same schema
+# reachable → {"ok":true,"host":"127.0.0.1","port":51784,"reachable":true} (exit 0)
+# unreachable → {"ok":false,"host":"127.0.0.1","port":51784,"reachable":false} (exit 1)
+# stderr is always empty on the status path
+```
+
+Environment (honored by the CLI and by the bridge it loads):
+
+| Variable | Default | Effect |
+|---|---|---|
+| `GOOGLE_AI_HOST_HOST` | `127.0.0.1` | TCP host for search + status |
+| `GOOGLE_AI_HOST_PORT` | `51784` | TCP port for search + status |
+| `GOOGLE_AI_TIMEOUT_MS` | `60000` | Default per-request timeout in ms |
+| `GOOGLE_AI_BRIDGE_GRACE_MS` | `30000` | Grace period on top of the timeout (for the bridge's rejection) |
+
+`--timeout-ms <ms>` (or the alias `--timeout <ms>`) overrides `GOOGLE_AI_TIMEOUT_MS` for a single invocation.
+
+Exit codes:
+
+- **0** success
+- **1** search/host error, including timeout (`default` → stderr; `--json`/`--raw` → structured stdout)
+- **2** usage error (`--help`, bad args, empty query, `--stdin` on TTY) — error message on stderr, no network contact
+
 ## How it works
 
 ```
