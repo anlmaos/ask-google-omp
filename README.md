@@ -16,10 +16,13 @@ You need three things: the MCP server, the native-messaging host, and either the
 
 ### 1. Wire the MCP server into your agent
 
+The stable npm release is `0.1.6`. Pin it in agent configs if you want the same
+server every time instead of whatever npm's `latest` tag points at later.
+
 Claude Code:
 
 ```bash
-claude mcp add google-ai-search -- npx anima-use-google
+claude mcp add google-ai-search -- npx anima-use-google@0.1.6
 ```
 
 Other agents - add to your MCP config:
@@ -29,17 +32,16 @@ Other agents - add to your MCP config:
   "mcpServers": {
     "google-ai-search": {
       "command": "npx",
-      "args": ["anima-use-google"]
+      "args": ["anima-use-google@0.1.6"]
     }
   }
 }
 ```
 
-If you do not want your agent to follow npm's moving `latest` tag, pin the MCP
-server to a GitHub commit instead:
+If you prefer installing straight from GitHub, pin the stable commit:
 
 ```bash
-claude mcp add google-ai-search -- npm exec --yes --package github:animaios/anima-use-google#<commit-sha> -- anima-use-google
+claude mcp add google-ai-search -- npm exec --yes --package github:animaios/anima-use-google#4311a84b580713ffd58d95dccbda8a97c635086f -- anima-use-google
 ```
 
 Equivalent MCP config:
@@ -53,7 +55,7 @@ Equivalent MCP config:
         "exec",
         "--yes",
         "--package",
-        "github:animaios/anima-use-google#<commit-sha>",
+        "github:animaios/anima-use-google#4311a84b580713ffd58d95dccbda8a97c635086f",
         "--",
         "anima-use-google"
       ]
@@ -62,7 +64,7 @@ Equivalent MCP config:
 }
 ```
 
-Use a full commit SHA for reproducibility. GitHub installs run the package's
+That commit is the same stable `0.1.6` release. GitHub installs run the package's
 `prepare` script, so the TypeScript server is built from source before npm runs
 the `anima-use-google` bin.
 
@@ -70,7 +72,10 @@ The MCP server talks to the sidecar over localhost; it does not bundle a browser
 
 ### 2. Set up a browser sidecar (one-time, non-npm)
 
-The npm tarball ships everything you need. After the first `npx anima-use-google`, the files live in `~/.npm/_npx/<hash>/node_modules/anima-use-google/` - easiest to clone:
+The npm tarball ships everything you need. After the first
+`npx anima-use-google@0.1.6`, the files live in
+`~/.npm/_npx/<hash>/node_modules/anima-use-google/`. For setup, cloning is
+usually easier:
 
 ```bash
 git clone https://github.com/animaios/anima-use-google
