@@ -32,8 +32,24 @@ globalThis.ANIMA_SELECTORS = {
     // Italian
     '[aria-label*="Link correlati"]',
     '[aria-label*="Fonti"]',
-    // Generic fallback (case-insensitive)
+    // Russian (RU) — observed live: aria-label="Посмотреть ссылки по теме"
+    //   ("View related links"). These substrings are specific enough not to
+    //   false-match other UI chrome; case-insensitive i-flag for safety.
+    //   RU: "Посмотреть ссылки по теме" (exact observed phrase)
+    '[aria-label*="Посмотреть ссылки по теме" i]',
+    //   RU: "ссылки по теме" (substring, robust to "View"/"Show" prefix variants)
+    '[aria-label*="ссылки по теме" i]',
+    //   RU: "Посмотреть ссылки" (shorter, robust if Google trims the phrase)
+    '[aria-label*="Посмотреть ссылки" i]',
+    // Generic fallback (case-insensitive) — English/German "links"
     'button[aria-label*="links" i]',
+    // Language-neutral fallback (HARDENING).
+    // Google AI Mode marks every citation "...links on the topic" button with
+    // data-amic="true" and a unique data-icl-uuid, regardless of locale. If a
+    // future locale (e.g. JA/ZH/KO/AR) lacks an aria-label entry above, this
+    // still finds the buttons. Confirmed in live RU sample: data-amic="true"
+    // appears ONLY on citation buttons (8/8), never on other UI chrome.
+    'button[data-amic="true"]',
   ],
 
   // AI completion - button-based detection (language independent).

@@ -1,0 +1,86 @@
+{
+  "$schema": "collected-aria-labels@pre-fix-v0",
+  "captured_at": "2026-07-06",
+  "browser_locale": "ru (Russian)",
+  "method": "node dist/cli.js \"<query>\" --raw | jq -r '.html' | grep -oE 'aria-label=\"[^\"]*\"' | sort -u",
+  "queries": [
+    {
+      "slug": "mountain",
+      "query": "what is the tallest mountain in the world",
+      "file": "research/live-samples/mountain.json",
+      "citations_before_fix": 0,
+      "has_cite_markers_before_fix": false,
+      "citation_button_aria_label": "Посмотреть ссылки по теме",
+      "citation_button_count_in_html": 8,
+      "citation_button_attributes": {
+        "data-amic": "true",
+        "data-icl-uuid_present": true,
+        "disabled_at_capture": "true (race: Google enables them after final completion)",
+        "class": "vDOt8c"
+      }
+    },
+    {
+      "slug": "romeo",
+      "query": "who wrote romeo and juliet",
+      "file": "research/live-samples/romeo.json",
+      "citations_before_fix": 0,
+      "has_cite_markers_before_fix": false,
+      "citation_button_aria_label": "Посмотреть ссылки по теме"
+    },
+    {
+      "slug": "capital",
+      "query": "what is the capital of australia",
+      "file": "research/live-samples/capital.json",
+      "citations_before_fix": 0,
+      "has_cite_markers_before_fix": false,
+      "citation_button_aria_label": "Посмотреть ссылки по теме"
+    }
+  ],
+  "citation_button_aria_labels_observed": [
+    "Посмотреть ссылки по теме"
+  ],
+  "other_candidate_aria_labels": [
+    "Поделиться",
+    "Скопировать текст",
+    "Подробный",
+    "Экономит время",
+    "Хороший ответ",
+    "Плохой ответ",
+    "Полезный",
+    "Неверный",
+    "Недопустимый",
+    "Не работает",
+    "Опрос о том, что вам не понравилось"
+  ],
+  "audit": {
+    "existing_locales_in_selectors_js": ["en", "de", "fr", "es", "nl", "it"],
+    "missing_locales": ["ru"],
+    "existing_locale_strings_targeted": [
+      "View related links",
+      "Related links",
+      "Sources",
+      "Zugehörige Links anzeigen",
+      "Liens associés",
+      "Enlaces relacionados",
+      "Fuentes",
+      "Gerelateerde links",
+      "Bronnen",
+      "Link correlati",
+      "Fonti"
+    ],
+    "new_locale_strings_to_add": [
+      {
+        "locale": "ru",
+        "aria_label": "Посмотреть ссылки по теме",
+        "semantic": "View related links",
+        "selector_substrings": ["Посмотреть ссылки", "ссылки по теме", "ссылки"]
+      }
+    ],
+    "language_neutral_attributes_available": ["data-amic=\"true\"", "data-icl-uuid"]
+  },
+  "reproduction_exit": {
+    "mountain": "ok:true, n_citations:0, has_markers:false",
+    "romeo": "ok:true, n_citations:0, has_markers:false",
+    "capital": "ok:true, n_citations:0, has_markers:false"
+  }
+}
