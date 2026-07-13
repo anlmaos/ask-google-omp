@@ -2,7 +2,7 @@
 
 ## Use Google AI Mode For Fresh Research
 
-This repo provides a local MCP tool, `search_google_ai`, that searches Google AI Mode through the user's logged-in browser session. Future Codex agents should treat it as the preferred research path for current external information:
+This repo provides a local MCP tool, `search_google_ai`, that searches Google AI Mode through the user's logged-in browser session. Use it as the preferred research path for current external information:
 
 - Browser extension policy and Manifest V3 behavior
 - Current API/package documentation
@@ -10,87 +10,33 @@ This repo provides a local MCP tool, `search_google_ai`, that searches Google AI
 - Web platform behavior
 - Any user query where fresh web context could materially improve the answer
 
-Use it extensively. Google AI Mode searches through this tool are effectively unlimited for normal development/research use. Do not replace local code inspection, tests, or compiler output with search results; use search to fill external/contextual gaps, then verify against the repository.
+Searches are effectively unlimited for normal development/research use. Do not replace local code inspection, tests, or compiler output with search results; use search to fill external/contextual gaps, then verify against the repository.
 
-## Standard Operating Procedure — Local Helper Scripts
+## OMP Harness Capabilities
 
-The following scripts are installed at `~/.agents/skills/`. Use them when the
-situation calls for it. Soft guidance — apply judgment, not dogma.
+This agent runs in the **Oh My Pi (OMP)** coding harness (v16.4.8, Linux x64, Rust engine + Bun/TS frontend). The harness provides:
 
-### auto-execute (plan runner)
+**Core tools:** `read`, `grep`, `glob`, `lsp`, `web_search`, `irc`, `yield`, `generate_image`, `ask`, `inspect_image`, `checkpoint`, `rewind`, `todo`, `job`, `task`, `eval`, `debug`, `ast_grep`, `ast_edit`, `github`, `ssh`, `bash`, `edit`, `write`, `resolve`, `search_tool_bm25`, `tts`
 
-`~/.agents/skills/auto-execute/auto-execute.sh`
+**jcodemunch MCP (18 code-intelligence tools):** AST search, dead code detection, dependency analysis, refactoring, symbol search, blast radius, imports, call graph, code coverage, etc.
 
-Use when the user has an implementation plan (Markdown with `### Task N:` headers)
-and wants it executed task-by-task in isolated sessions.
+**Skills system:** 11 loaded skills from `~/.omp/agent/skills/`: agents-sdk, cloudflare, cloudflare-email-service, cloudflare-one, cloudflare-one-migrations, durable-objects, sandbox-sdk, turnstile-spin, web-perf, workers-best-practices, wrangler. Use `skill://<name>` to load any skill before tasks in that domain.
 
-CLI binaries: any `claude`-prefixed command name. Pass 1-5 for failover redundancy.
+**Memory backend:** Mnemopi (per-project-tagged, polyphonic recall, proactive linking, enhanced recall)
 
+**Model:** `vllm/auto` (local vLLM inference on AMD Ryzen 7 7800X3D with NVIDIA GTX 1060 3GB)
 
-```bash
-auto-execute.sh [--max-turns 80] [--task-timeout 600] [--context-limit 100000]
-                [--start-task N] [--log-dir logs/auto-execute]
-                <claude-binary> [claude-binary-2..5] <plan-input>
-```
+## Local Verification
 
-Plan input: path to plan file, partial match against `docs/plans/`, or `latest` for
-most recent.
-
-Behavior: runs each task as `claude -p "/auto-execute task-N.md"`, monitors for
-timeout/context-limit, verifies exit+commit+tree-clean after each step, retries
-with next binary on failure. Ctrl+C is trapped cleanly.
-
-Do not use for single-shot tasks, exploratory work, or when the user wants to
-review each step manually.
-
-### commit (git committer)
-
-`~/.agents/skills/commit/SKILL.md` — Claude Code skill, triggered via `/commit`
-
-Use when the user says "commit" or "save this" or asks for a commit message.
-Generates `type: description` format, runs `git diff --staged`, prompts for staging
-if nothing staged.
-
-Alternative without skill invocation:
-
-```bash
-git diff --staged → git add . → git commit -m "type: description"
-```
-
-
-### humanizer (writer)
-
-`~/.agents/skills/humanizer/SKILL.md` — Claude Code skill, triggered via
-`/humanizer`
-
-Use when the user asks to "clean up" writing, "make this sound natural", "de-AI
-this", or similar. Applies 25 pattern replacements (significance inflation, copula
-avoidance, chatbot artifacts, em dash overuse, etc.) with personality-injection
-pass. Repo-agnostic — works on any prose.
-
-### When to invoke automatically
-
-| User says | Invoke |
-|-----------|--------|
-| "run the plan" / "execute tasks from <file>" | auto-execute |
-| "commit this" / "commit changes" | commit skill or manual |
-| "fix this text" / "make it sound human" / "de-AI" | humanizer skill |
-
-Platform check: these scripts assume Linux/macOS. On Windows, use PowerShell
-equivalents (not yet ported).
-
-## Local Verification Still Wins
-
-Before claiming work is complete, run the relevant local verification:
+Before claiming work is complete, run:
 
 ```bash
 npm test
 npm run typecheck
 npm run build
-npm pack --dry-run
 ```
 
-For extension changes, also inspect or test the browser-specific manifest and native-host installer path. Chrome/Chromium/Brave native messaging requires an extension id in `allowed_origins`, so use `native-host/install-chrome-host.cjs --browser <chrome|chromium|brave> --extension-id <id>` after loading the unpacked Chromium extension and obtaining its id.
+For extension changes, verify the browser-native-messaging integration after reinstalling the host for the target browser.
 
 ## Switching Browser Sidecars For E2E Tests
 
@@ -109,7 +55,7 @@ If the wrong host is active, disable or unload that browser's sidecar extension 
 kill <native-host-pid>
 ```
 
-For Firefox, use:
+For Firefox:
 
 ```bash
 node native-host/install-host.cjs
@@ -131,9 +77,7 @@ Brave uses the Chromium extension. Its native-messaging registration locations a
 - macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
 - Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.google.ai.search`
 
-The installer writes those locations for `--browser brave`; then reload the Brave extension from `brave://extensions`.
-
-After reloading, confirm the active host. A Chromium-based host should show the extension origin as an argument, for example:
+After reloading, confirm the active host. A Chromium-based host shows the extension origin as an argument:
 
 ```text
 node /path/to/native-host/host.js chrome-extension://<extension-id>/
