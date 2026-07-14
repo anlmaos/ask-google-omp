@@ -1,10 +1,8 @@
 <div align=center>
 
-# [anima](https://github.com/animaios/anima)-use-google
+<img width="1376" height="768" alt="anima-use-google-logo" src="https://github.com/user-attachments/assets/bbe8f68d-2554-4a2c-920d-64363d491699" />
 
 ### MCP server + browser sidecar extension that lets AI agents run [Google AI Mode](https://blog.google/products/search/ai-mode-search/) searches using your **own logged-in browser session**, then return the synthesized answer and citations as an MCP tool result.
-
-<img width="256" height="384" alt="AnimAIOS mascot" src="https://github.com/user-attachments/assets/8df6553c-e975-4ac4-b32c-fc73cdf0eebd" />
 
 #### No headless browser, no stealth tricks, no CAPTCHA fighting. Your real browser profile does the work.
 
@@ -291,6 +289,8 @@ Your logged-in Google cookies are reused because the tab is opened in your own b
 The multilanguage completion detection (SVG thumbs-up → aria-label → text markers → 40s fallback) and SERPO-style citation parsing are ported from the Battle-tested [google-ai-mode-mcp](https://github.com/PleasePrompto/google-ai-mode-mcp).
 
 ## Developers
+
+<img width="256" height="384" alt="AnimAIOS mascot" src="https://github.com/user-attachments/assets/8df6553c-e975-4ac4-b32c-fc73cdf0eebd" />
 
 Want to hack on the MCP server or build from source:
 
