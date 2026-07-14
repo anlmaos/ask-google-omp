@@ -1,6 +1,6 @@
 <div align=center>
 
-<img width="1376" height="768" alt="anima-use-google-logo" src="https://github.com/user-attachments/assets/bbe8f68d-2554-4a2c-920d-64363d491699" />
+<img width="1672" height="941" alt="anima-use-google-logo" src="https://github.com/user-attachments/assets/5a51ffd2-e1e4-495a-b08f-8b24a3239db4" />
 
 ### MCP server + browser sidecar extension that lets AI agents run [Google AI Mode](https://blog.google/products/search/ai-mode-search/) searches using your **own logged-in browser session**, then return the synthesized answer and citations as an MCP tool result.
 
