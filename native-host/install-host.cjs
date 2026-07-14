@@ -4,9 +4,9 @@
  * platform-specific manifest to the location Firefox scans for installed
  * native messaging hosts, pointing at this repo's host.js.
  *
- *   Windows:  registry (HKCU\\Software\\Mozilla\\NativeMessagingHosts\\com.google.ai.search)
- *   macOS:    ~/Library/Application Support/Mozilla/NativeMessagingHosts/com.google.ai.search.json
- *   Linux:    ~/.mozilla/native-messaging-hosts/com.google.ai.search.json
+ *   Windows:  registry (HKCU\\Software\\Mozilla\\NativeMessagingHosts\\com.ask.google)
+ *   macOS:    ~/Library/Application Support/Mozilla/NativeMessagingHosts/com.ask.google.json
+ *   Linux:    ~/.mozilla/native-messaging-hosts/com.ask.google.json
  *
  * Re-run this any time you move the repo.
  */
@@ -15,7 +15,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 
-const HOST_NAME = "com.google.ai.search";
+const HOST_NAME = "com.ask.google";
 const REPO_ROOT = path.resolve(__dirname, "..");
 const HOST_JS = path.join(REPO_ROOT, "native-host", "host.js");
 const FIREFOX_WIN_KEY = `HKCU\\Software\\Mozilla\\NativeMessagingHosts\\${HOST_NAME}`;
@@ -26,10 +26,10 @@ function buildManifest() {
   const launcher = path.join(__dirname, "run-host.sh");
   return {
     name: HOST_NAME,
-    description: "Anima-use-google native messaging bridge",
+    description: "Ask Google native messaging bridge",
     path: launcher,
     type: "stdio",
-    allowed_extensions: ["google-ai-search@anima-use-google"],
+    allowed_extensions: ["ask-google@anima-use-google"],
   };
 }
 

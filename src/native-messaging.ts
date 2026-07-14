@@ -69,7 +69,7 @@ export class NativeMessagingBridge {
         this.connecting = null;
         reject(
           new Error(
-            `Cannot reach native host at ${HOST_HOST}:${HOST_PORT}. Is Firefox running with the google-ai-search extension installed and connected?`
+            `Cannot reach native host at ${HOST_HOST}:${HOST_PORT}. Is Firefox running with the ask-google extension installed and connected?`
           )
         );
       }, 3000);
@@ -98,7 +98,7 @@ export class NativeMessagingBridge {
         parsed = JSON.parse(payload.toString("utf8"));
       } catch (err) {
         console.error(
-          `[google-ai-search] bad JSON from host: ${
+          `[ask-google] bad JSON from host: ${
             err instanceof Error ? err.message : String(err)
           }`
         );

@@ -1,7 +1,7 @@
 # CLI Client for Harnesses Without MCP Support
 
 ## Goal
-Create a simple command-line client that invokes the MCP server's `search_google_ai` tool directly without requiring full MCP client support in the harness/agent.
+Create a simple command-line client that invokes the MCP server's `ask_google` tool directly without requiring full MCP client support in the harness/agent.
 
 ## Implementation Plan
 

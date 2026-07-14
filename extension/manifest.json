@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Anima-use-google",
+  "name": "Ask Google",
   "version": "0.1.6",
   "description": "Sidecar extension that runs Google AI Mode searches for the anima-use-google MCP server using your own logged-in session.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "google-ai-search@anima-use-google",
+      "id": "ask-google@anima-use-google",
       "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["none"],

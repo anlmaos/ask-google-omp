@@ -2,13 +2,13 @@
 /**
  * MCP server entrypoint.
  *
- * Exposes a single tool `search_google_ai({ query, timeout_ms? })` that runs a
+ * Exposes a single tool `ask_google({ query, timeout_ms? })` that runs a
  * Google AI Mode (udm=50) search inside your own logged-in Firefox session via
  * the sidecar extension, and returns the synthesized markdown answer + citations
  * back to the MCP client.
  *
  * Flow:
- *   1. Client calls search_google_ai({ query }).
+ *   1. Client calls ask_google({ query }).
  *   2. Bridge sends { type: "run-search", query } to host.js over TCP.
  *   3. host.js forwards to the Firefox extension over native messaging.
  *   4. Extension opens the AI Mode tab, waits for completion, runs the
@@ -56,14 +56,14 @@ function toErrorResult(message: string): CallToolResult {
 async function main(): Promise<void> {
   const bridge = new NativeMessagingBridge();
   const server = new Server(
-    { name: "google-ai-search", version: "0.1.0" },
+    { name: "ask-google", version: "0.1.0" },
     { capabilities: { tools: {} } }
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
       {
-        name: "search_google_ai",
+        name: "ask_google",
         description:
           "Run a Google AI Mode search (https://www.google.com/search?udm=50&q=...) using your own logged-in Firefox session and return the AI-synthesized answer with inline citations [1][2] and a source list. Free, grounded, no API key.",
         inputSchema: {
@@ -92,7 +92,7 @@ async function main(): Promise<void> {
       timeout_ms?: number;
     };
 
-    if (name !== "search_google_ai") {
+    if (name !== "ask_google") {
       return toErrorResult(`Unknown tool: ${name}`);
     }
     if (!args.query || typeof args.query !== "string") {
@@ -138,7 +138,7 @@ async function main(): Promise<void> {
 
 main().catch((err) => {
   console.error(
-    `[google-ai-search] fatal: ${err instanceof Error ? err.message : String(err)}`
+    `[ask-google] fatal: ${err instanceof Error ? err.message : String(err)}`
   );
   process.exit(1);
 });

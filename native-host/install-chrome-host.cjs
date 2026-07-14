@@ -18,7 +18,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 
-const HOST_NAME = "com.google.ai.search";
+const HOST_NAME = "com.ask.google";
 const REPO_ROOT = path.resolve(__dirname, "..");
 const HOST_JS = path.join(REPO_ROOT, "native-host", "host.js");
 
@@ -93,7 +93,7 @@ function buildChromeManifest(extensionId) {
   validateExtensionId(extensionId);
   return {
     name: HOST_NAME,
-    description: "Anima-use-google native messaging bridge",
+    description: "Ask Google native messaging bridge",
     path: path.join(__dirname, "run-host.sh"),
     type: "stdio",
     allowed_origins: [`chrome-extension://${extensionId}/`],

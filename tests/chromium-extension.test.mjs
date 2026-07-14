@@ -21,7 +21,7 @@ test("Chromium background uses chrome APIs and the shared native host name", () 
     "utf8"
   );
 
-  assert.match(source, /const NATIVE_HOST = "com\.google\.ai\.search"/);
+  assert.match(source, /const NATIVE_HOST = "com\.ask\.google"/);
   assert.match(source, /chrome\.runtime\.connectNative/);
   assert.match(source, /chrome\.tabs\.sendMessage/);
   assert.doesNotMatch(source, /\bbrowser\./);

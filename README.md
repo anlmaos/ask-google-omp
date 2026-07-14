@@ -22,7 +22,7 @@ server every time instead of whatever npm's `latest` tag points at later.
 Claude Code:
 
 ```bash
-claude mcp add google-ai-search -- npx anima-use-google@0.1.6
+claude mcp add ask-google -- npx anima-use-google@0.1.6
 ```
 
 Other agents - add to your MCP config:
@@ -30,7 +30,7 @@ Other agents - add to your MCP config:
 ```json
 {
   "mcpServers": {
-    "google-ai-search": {
+    "ask-google": {
       "command": "npx",
       "args": ["anima-use-google@0.1.6"]
     }
@@ -41,7 +41,7 @@ Other agents - add to your MCP config:
 If you prefer installing straight from GitHub, pin the stable commit:
 
 ```bash
-claude mcp add google-ai-search -- npm exec --yes --package github:animaios/anima-use-google#4311a84b580713ffd58d95dccbda8a97c635086f -- anima-use-google
+claude mcp add ask-google -- npm exec --yes --package github:animaios/anima-use-google#4311a84b580713ffd58d95dccbda8a97c635086f -- anima-use-google
 ```
 
 Equivalent MCP config:
@@ -49,7 +49,7 @@ Equivalent MCP config:
 ```json
 {
   "mcpServers": {
-    "google-ai-search": {
+    "ask-google": {
       "command": "npm",
       "args": [
         "exec",
@@ -92,9 +92,9 @@ cd anima-use-google
 
    This writes the Firefox native-host registration for your OS:
 
-   - Linux: `~/.mozilla/native-messaging-hosts/com.google.ai.search.json`
-   - macOS: `~/Library/Application Support/Mozilla/NativeMessagingHosts/com.google.ai.search.json`
-   - Windows: `HKCU\Software\Mozilla\NativeMessagingHosts\com.google.ai.search`, pointing at `%USERPROFILE%\.anima-use-google\com.google.ai.search.json`
+   - Linux: `~/.mozilla/native-messaging-hosts/com.ask.google.json`
+   - macOS: `~/Library/Application Support/Mozilla/NativeMessagingHosts/com.ask.google.json`
+   - Windows: `HKCU\Software\Mozilla\NativeMessagingHosts\com.ask.google`, pointing at `%USERPROFILE%\.anima-use-google\com.ask.google.json`
 
 2. Load the extension in Firefox:
 
@@ -141,21 +141,21 @@ before installing the native host.
 
    The installer writes the manifest or registry entry for your selected browser:
 
-   - Chrome on Linux: `~/.config/google-chrome/NativeMessagingHosts/com.google.ai.search.json`
-   - Chrome on macOS: `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.google.ai.search.json`
-   - Chrome on Windows: `HKCU\Software\Google\Chrome\NativeMessagingHosts\com.google.ai.search`
-   - Chromium on Linux: `~/.config/chromium/NativeMessagingHosts/com.google.ai.search.json`
-   - Chromium on macOS: `~/Library/Application Support/Chromium/NativeMessagingHosts/com.google.ai.search.json`
-   - Chromium on Windows: `HKCU\Software\Chromium\NativeMessagingHosts\com.google.ai.search`
-   - Brave on Linux: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
-   - Brave on macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
-   - Brave on Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.google.ai.search`
+   - Chrome on Linux: `~/.config/google-chrome/NativeMessagingHosts/com.ask.google.json`
+   - Chrome on macOS: `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.ask.google.json`
+   - Chrome on Windows: `HKCU\Software\Google\Chrome\NativeMessagingHosts\com.ask.google`
+   - Chromium on Linux: `~/.config/chromium/NativeMessagingHosts/com.ask.google.json`
+   - Chromium on macOS: `~/Library/Application Support/Chromium/NativeMessagingHosts/com.ask.google.json`
+   - Chromium on Windows: `HKCU\Software\Chromium\NativeMessagingHosts\com.ask.google`
+   - Brave on Linux: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json`
+   - Brave on macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json`
+   - Brave on Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.ask.google`
 
    On Windows, the manifest JSON itself is written under
-   `%USERPROFILE%\.anima-use-google\<browser>\com.google.ai.search.json`, and
+   `%USERPROFILE%\.anima-use-google\<browser>\com.ask.google.json`, and
    the registry key points the browser at that file.
 
-3. Reload the extension so `chrome.runtime.connectNative("com.google.ai.search")`
+3. Reload the extension so `chrome.runtime.connectNative("com.ask.google")`
    sees the manifest.
 
 ### Switching between Firefox and Chromium-based sidecars
@@ -213,7 +213,7 @@ Ask your agent normally:
 
 > Search Google AI Mode for: Next.js 15 App Router best practices
 
-The agent calls `search_google_ai`, your browser sidecar opens the `udm=50` search in your profile, the extension parses the AI answer with inline `[1][2]` citations, and the agent gets a grounded markdown response.
+The agent calls `ask_google`, your browser sidecar opens the `udm=50` search in your profile, the extension parses the AI answer with inline `[1][2]` citations, and the agent gets a grounded markdown response.
 
 ## anima-use-google-cli
 
@@ -298,21 +298,4 @@ Want to hack on the MCP server or build from source:
 npm install
 npm run build     # tsc -> dist/
 npm test          # node:test regression suite
-npm link          # then `anima-use-google` on PATH
 ```
-
-Project layout:
-
-- `src/` + `dist/` - TypeScript MCP server publishing as `anima-use-google`.
-- `native-host/` - `host.js` bridges browser native messaging <-> localhost TCP; `install-host.cjs` writes the Firefox manifest; `install-chrome-host.cjs` writes the Chrome/Chromium/Brave manifest.
-- `extension/` - Firefox MV3 sidecar.
-- `extension-chromium/` - Chrome/Chromium/Brave MV3 sidecar using a service worker background.
-- Selector constants live in each extension's `src/selectors.js` - update both if Google's AI Mode DOM shifts.
-
-## Tuning
-
-Cutoff markers (end-of-answer disclaimers, language-aware) and citation selectors are in `extension/src/selectors.js` and `extension-chromium/src/selectors.js`. If extraction fails on your locale, add your language's markers there.
-
-## License
-
-unLICENSE. See `LICENSE`.

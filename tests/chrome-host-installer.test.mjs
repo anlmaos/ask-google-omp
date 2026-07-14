@@ -9,7 +9,7 @@ test("Chrome native host manifest includes allowed_origins for the extension id"
 
   const manifest = buildChromeManifest("abcdefghijklmnopabcdefghijklmnop");
 
-  assert.equal(manifest.name, "com.google.ai.search");
+  assert.equal(manifest.name, "com.ask.google");
   assert.equal(manifest.type, "stdio");
   assert.deepEqual(manifest.allowed_origins, [
     "chrome-extension://abcdefghijklmnopabcdefghijklmnop/",
@@ -50,7 +50,7 @@ test("Brave native host installer resolves platform-specific locations", () => {
       platform: "linux",
       homeDir: "/home/alice",
     }),
-    "/home/alice/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json"
+    "/home/alice/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json"
   );
 
   assert.equal(
@@ -59,7 +59,7 @@ test("Brave native host installer resolves platform-specific locations", () => {
       platform: "darwin",
       homeDir: "/Users/alice",
     }),
-    "/Users/alice/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json"
+    "/Users/alice/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json"
   );
 
   assert.deepEqual(
@@ -69,9 +69,9 @@ test("Brave native host installer resolves platform-specific locations", () => {
       homeDir: "C:\\Users\\Alice",
     }),
     {
-      manifestPath: "C:\\Users\\Alice\\.anima-use-google\\brave\\com.google.ai.search.json",
+      manifestPath: "C:\\Users\\Alice\\.anima-use-google\\brave\\com.ask.google.json",
       registryKey:
-        "HKCU\\Software\\BraveSoftware\\Brave-Browser\\NativeMessagingHosts\\com.google.ai.search",
+        "HKCU\\Software\\BraveSoftware\\Brave-Browser\\NativeMessagingHosts\\com.ask.google",
     }
   );
 });

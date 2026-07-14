@@ -6,7 +6,7 @@
  * serve either browser family.
  */
 
-const NATIVE_HOST = "com.google.ai.search";
+const NATIVE_HOST = "com.ask.google";
 const CONTENT_SCRIPT_READY_TIMEOUT_MS = 15000;
 const CONTENT_SCRIPT_RETRY_INTERVAL_MS = 250;
 
@@ -28,7 +28,7 @@ function ensurePort() {
   try {
     port = chrome.runtime.connectNative(NATIVE_HOST);
   } catch (err) {
-    console.error(`[google-ai-search] connectNative failed: ${err.message}`);
+    console.error(`[ask-google] connectNative failed: ${err.message}`);
     port = null;
     return null;
   }
@@ -39,7 +39,7 @@ function ensurePort() {
   });
 
   port.onDisconnect.addListener(() => {
-    console.warn("[google-ai-search] native port disconnected");
+    console.warn("[ask-google] native port disconnected");
     port = null;
     for (const [reqId, entry] of pendingByRequest) {
       clearTimeout(entry.watchdog);
@@ -169,7 +169,7 @@ function closeTab(tabId) {
 function sendResult(requestId, ok, error, html, citations) {
   const p = ensurePort();
   if (!p) {
-    console.error("[google-ai-search] cannot send result: no native port");
+    console.error("[ask-google] cannot send result: no native port");
     return;
   }
   try {
@@ -181,7 +181,7 @@ function sendResult(requestId, ok, error, html, citations) {
       citations: citations || null,
     });
   } catch (err) {
-    console.error(`[google-ai-search] postMessage to host failed: ${err.message}`);
+    console.error(`[ask-google] postMessage to host failed: ${err.message}`);
   }
 }
 

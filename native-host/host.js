@@ -3,7 +3,7 @@
  * Native messaging host for the anima-use-google Firefox extension.
  *
  * Lifecycle: Firefox spawns this process when the extension calls
- * `browser.runtime.connectNative("com.google.ai.search")`. We then:
+ * `browser.runtime.connectNative("com.ask.google")`. We then:
  *
  *   1. Speak the native-messaging framing on stdin/stdout with Firefox
  *      (4-byte little-endian length prefix + UTF-8 JSON payload).
@@ -93,11 +93,11 @@ const server = net.createServer((client) => {
 });
 
 server.on("error", (err) => {
-  console.error(`[google-ai-search host] TCP server error: ${err.message}`);
+  console.error(`[ask-google host] TCP server error: ${err.message}`);
 });
 server.listen(PORT, HOST, () => {
   console.error(
-    `[google-ai-search host] listening on ${HOST}:${PORT} (Firefox native host ready)`
+    `[ask-google host] listening on ${HOST}:${PORT} (Firefox native host ready)`
   );
 });
 
@@ -140,5 +140,5 @@ process.stdout.on("error", () => process.exit(0));
 
 // Silence uncaught throws.
 process.on("uncaughtException", (err) => {
-  console.error(`[google-ai-search host] uncaught: ${err && err.message}`);
+  console.error(`[ask-google host] uncaught: ${err && err.message}`);
 });

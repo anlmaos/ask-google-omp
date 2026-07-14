@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Anima-use-google",
+  "name": "Ask Google",
   "version": "0.1.6",
   "description": "Chromium sidecar extension that runs Google AI Mode searches for the anima-use-google MCP server using your own logged-in session.",
   "permissions": [

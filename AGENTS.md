@@ -2,7 +2,7 @@
 
 ## Use Google AI Mode For Fresh Research
 
-This repo provides a local MCP tool, `search_google_ai`, that searches Google AI Mode through the user's logged-in browser session. Use it as the preferred research path for current external information:
+This repo provides a local MCP tool, `ask_google`, that searches Google AI Mode through the user's logged-in browser session. Use it as the preferred research path for current external information:
 
 - Browser extension policy and Manifest V3 behavior
 - Current API/package documentation
@@ -73,9 +73,9 @@ node native-host/install-chrome-host.cjs --browser brave --extension-id <id>
 
 Brave uses the Chromium extension. Its native-messaging registration locations are:
 
-- Linux: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
-- macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.google.ai.search.json`
-- Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.google.ai.search`
+- Linux: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json`
+- macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json`
+- Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.ask.google`
 
 After reloading, confirm the active host. A Chromium-based host shows the extension origin as an argument:
 

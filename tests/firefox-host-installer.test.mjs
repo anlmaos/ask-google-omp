@@ -12,7 +12,7 @@ test("Firefox native host installer resolves platform-specific locations", () =>
       platform: "linux",
       homeDir: "/home/alice",
     }),
-    "/home/alice/.mozilla/native-messaging-hosts/com.google.ai.search.json"
+    "/home/alice/.mozilla/native-messaging-hosts/com.ask.google.json"
   );
 
   assert.equal(
@@ -20,7 +20,7 @@ test("Firefox native host installer resolves platform-specific locations", () =>
       platform: "darwin",
       homeDir: "/Users/alice",
     }),
-    "/Users/alice/Library/Application Support/Mozilla/NativeMessagingHosts/com.google.ai.search.json"
+    "/Users/alice/Library/Application Support/Mozilla/NativeMessagingHosts/com.ask.google.json"
   );
 
   assert.deepEqual(
@@ -29,9 +29,9 @@ test("Firefox native host installer resolves platform-specific locations", () =>
       homeDir: "C:\\Users\\Alice",
     }),
     {
-      manifestPath: "C:\\Users\\Alice\\.anima-use-google\\com.google.ai.search.json",
+      manifestPath: "C:\\Users\\Alice\\.anima-use-google\\com.ask.google.json",
       registryKey:
-        "HKCU\\Software\\Mozilla\\NativeMessagingHosts\\com.google.ai.search",
+        "HKCU\\Software\\Mozilla\\NativeMessagingHosts\\com.ask.google",
     }
   );
 });
