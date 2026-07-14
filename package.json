@@ -1,6 +1,6 @@
 {
   "name": "anima-use-google",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "MCP server that runs Google AI Mode searches via a browser sidecar extension using your own logged-in session.",
   "type": "module",
   "license": "MIT",
