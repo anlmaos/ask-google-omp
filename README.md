@@ -2,7 +2,7 @@
 
 <img width="1672" height="941" alt="anima-use-google-logo" src="https://github.com/user-attachments/assets/5a51ffd2-e1e4-495a-b08f-8b24a3239db4" />
 
-### MCP server + browser sidecar extension that lets AI agents run [Google AI Mode](https://blog.google/products/search/ai-mode-search/) searches using your **own logged-in browser session**, then return the synthesized answer and citations as an MCP tool result.
+### oh-my-pi (omp) plugin + browser sidecar extension that lets AI agents run [Google AI Mode](https://blog.google/products/search/ai-mode-search/) searches using your **own logged-in browser session**, then return the synthesized answer and citations as a tool result.
 
 #### No headless browser, no stealth tricks, no CAPTCHA fighting. Your real browser profile does the work.
 
@@ -10,74 +10,40 @@
 
 ## Quickest path (5 minutes)
 
-You need three things: the MCP server, the native-messaging host, and either the Firefox or Chromium extension. Then wire the server into your agent.
+You need two things: the oh-my-pi plugin, and either the Firefox or Chromium
+extension. Link the plugin, set up the sidecar once, and the model gets an
+`ask_google` tool.
 
-### 1. Wire the MCP server into your agent
-
-The stable npm release is `0.1.6`. Pin it in agent configs if you want the same
-server every time instead of whatever npm's `latest` tag points at later.
-
-Claude Code:
+### 1. Link the plugin
 
 ```bash
-claude mcp add ask-google -- npx anima-use-google@0.1.6
+omp plugin link /path/to/anima-use-google
 ```
 
-Other agents - add to your MCP config:
+This symlinks the package into `omp`'s plugin directory and reads the
+`omp.extensions` manifest in `package.json`, which points at
+`src/omp-extension.ts`. Restart `omp`, and `ask_google` appears as a regular
+tool the model can call — no build step, because omp imports the TypeScript
+source directly.
 
-```json
-{
-  "mcpServers": {
-    "ask-google": {
-      "command": "npx",
-      "args": ["anima-use-google@0.1.6"]
-    }
-  }
-}
-```
+You also get installable entry points: `omp plugin install <npm pkg or git url>`
+for a normal install, `omp plugin uninstall anima-use-google` to remove it
+again, and `omp plugin doctor anima-use-google` to check the link.
 
-If you prefer installing straight from GitHub, pin the stable commit:
+The plugin links straight from GitHub if you prefer not to clone:
 
 ```bash
-claude mcp add ask-google -- npm exec --yes --package github:animaios/anima-use-google#4311a84b580713ffd58d95dccbda8a97c635086f -- anima-use-google
+omp plugin install github:7n1m4/ask-google-omp
 ```
-
-Equivalent MCP config:
-
-```json
-{
-  "mcpServers": {
-    "ask-google": {
-      "command": "npm",
-      "args": [
-        "exec",
-        "--yes",
-        "--package",
-        "github:animaios/anima-use-google#4311a84b580713ffd58d95dccbda8a97c635086f",
-        "--",
-        "anima-use-google"
-      ]
-    }
-  }
-}
-```
-
-That commit is the same stable `0.1.6` release. GitHub installs run the package's
-`prepare` script, so the TypeScript server is built from source before npm runs
-the `anima-use-google` bin.
-
-The MCP server talks to the sidecar over localhost; it does not bundle a browser.
 
 ### 2. Set up a browser sidecar (one-time, non-npm)
 
-The npm tarball ships everything you need. After the first
-`npx anima-use-google@0.1.6`, the files live in
-`~/.npm/_npx/<hash>/node_modules/anima-use-google/`. For setup, cloning is
-usually easier:
+The package ships everything you need. After `omp plugin link`, the files live
+in the repo you cloned — so cloning is usually the easiest starting point:
 
 ```bash
-git clone https://github.com/animaios/anima-use-google
-cd anima-use-google
+git clone https://github.com/7n1m4/ask-google-omp
+cd ask-google-omp
 ```
 
 #### Firefox
@@ -158,7 +124,7 @@ before installing the native host.
 
 ### Switching between Firefox and Chromium-based sidecars
 
-The MCP server always connects to the first browser native host listening on
+The plugin always connects to the first browser native host listening on
 `127.0.0.1:51784`. When switching browsers during development, make sure the
 old sidecar is not still owning that port.
 
@@ -213,9 +179,33 @@ Ask your agent normally:
 
 The agent calls `ask_google`, your browser sidecar opens the `udm=50` search in your profile, the extension parses the AI answer with inline `[1][2]` citations, and the agent gets a grounded markdown response.
 
+## What the plugin gives you
+
+```
+what omp loads:       the manifest points at `src/omp-extension.ts`, and omp
+                      imports the TypeScript source directly — no build step.
+
+what the model sees:  a native `ask_google` tool, called by its plain name
+                      rather than through an intermediate tool server.
+
+extras you gain:      streamed progress while the browser answer is pending,
+                      abort-aware cancellation (Ctrl-C/abort actually cancels
+                      the in-flight search), and the host socket is released
+                      when the session ends
+```
+
+Requirements: your browser sidecar must be installed and running so `host.js`
+listens on `127.0.0.1:51784`. The
+[sidecar setup](#2-set-up-a-browser-sidecar-one-time-non-npm) covers it.
+
+When the host is not reachable, the tool fails with a diagnostic naming
+`127.0.0.1:51784` rather than hanging or returning an empty result.
+
+To remove it again: `omp plugin uninstall anima-use-google`.
+
 ## anima-use-google-cli
 
-The `anima-use-google-cli` binary searches Google AI Mode directly through the native host on `127.0.0.1:51784`. It does **not** spawn the MCP server (`dist/index.js`) and has zero dependency on the `@modelcontextprotocol/sdk` — per invocation it runs as a single pure-Node process.
+The `anima-use-google-cli` binary searches Google AI Mode directly through the native host on `127.0.0.1:51784`. It talks to the same `NativeMessagingBridge` the plugin uses, carries no agent-protocol dependency, and runs as a single pure-Node process per invocation.
 
 ```
 anima-use-google-cli <query>
@@ -226,7 +216,7 @@ anima-use-google-cli <query>
   └─ stdout: markdown | --json | --raw ; stderr: errors ; exit 0/1/2
 ```
 
-Designed for harnesses and people who don't want the MCP client interface. The CLI runs on Node 20+ with no new packages — cross-platform by construction (`bridge.dispose()` always runs in a `finally`, no lingering socket or child process).
+Designed for harnesses and people who want a plain CLI instead of the plugin. The CLI runs on Node 20+ with no new packages — cross-platform by construction (`bridge.dispose()` always runs in a `finally`, no lingering socket or child process).
 
 ```bash
 # Positional (space-joined)
@@ -277,12 +267,19 @@ Exit codes:
 ## How it works
 
 ```
-Agent (stdio) <---> MCP server <---> localhost TCP <---> host.js
-       <---> browser native port <---> background script
-       <---> opens google.com/search?udm=50&q=...
-       <---> content.js parses AI answer + sources
-       <---> response back along the same chain
+omp plugin <---> localhost TCP <---> host.js
+   ^                                    ^
+anima-use-google-cli -------------------'
+                                   <---> browser native port
+                                   <---> background script
+                                   <---> opens google.com/search?udm=50&q=...
+                                   <---> content.js parses AI answer + sources
+                                   <---> response back along the same chain
 ```
+
+Two Node-side front doors (the omp plugin and the CLI) share one
+`NativeMessagingBridge`, and both talk to the single `host.js` that the browser
+owns. There is no third process in the path.
 
 Your logged-in Google cookies are reused because the tab is opened in your own browser profile - if you have AI Mode enabled, it works; CAPTCHAs don't trigger (real user profile, no stealth games).
 
@@ -292,10 +289,27 @@ The multilanguage completion detection (SVG thumbs-up → aria-label → text ma
 
 <img width="256" height="384" alt="AnimAIOS mascot" src="https://github.com/user-attachments/assets/8df6553c-e975-4ac4-b32c-fc73cdf0eebd" />
 
-Want to hack on the MCP server or build from source:
+Want to hack on the plugin or build from source:
 
 ```bash
 npm install
 npm run build     # tsc -> dist/
 npm test          # node:test regression suite
 ```
+
+Layout of the pieces this repo is made of:
+
+| Path | Role |
+|---|---|
+| `src/omp-extension.ts` | oh-my-pi plugin — registers `ask_google` as a native omp tool (primary front door) |
+| `src/cli.ts` | direct-host CLI (`anima-use-google-cli` bin) — same bridge, no plugin host |
+| `src/native-messaging.ts` | `NativeMessagingBridge` — raw TCP client, framing, cancellation |
+| `src/parser.ts` | HTML → grounded markdown with embedded citations |
+| `src/query.ts` | appends the "answer in English" instruction |
+| `native-host/host.js` | the browser-owned bridge between native messaging and localhost TCP |
+| `extension/`, `extension-chromium/` | the browser sidecar that drives Google AI Mode |
+
+`src/omp-extension.ts` and `src/cli.ts` are two thin front doors over the same
+`native-messaging.ts` + `parser.ts` core. Neither is privileged: you can use the
+CLI exactly as you would the plugin, and both drive the identical browser
+sidecar.

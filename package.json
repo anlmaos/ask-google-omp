@@ -1,14 +1,12 @@
 {
   "name": "anima-use-google",
   "version": "0.1.7",
-  "description": "MCP server that runs Google AI Mode searches via a browser sidecar extension using your own logged-in session.",
+  "description": "oh-my-pi (omp) plugin that runs Google AI Mode searches via a browser sidecar extension using your own logged-in session.",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "anima-use-google": "dist/index.js",
     "anima-use-google-cli": "dist/cli.js"
   },
-  "main": "dist/index.js",
   "files": [
     "dist",
     "native-host",
@@ -25,7 +23,6 @@
     "prepublishOnly": "tsc -p ."
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
     "cheerio": "^1.2.0",
     "turndown": "^7.2.4"
   },
@@ -35,5 +32,10 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "omp": {
+    "extensions": [
+      "./src/omp-extension.ts"
+    ]
   }
 }

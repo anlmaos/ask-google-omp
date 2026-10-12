@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Ask Google",
   "version": "0.1.6",
-  "description": "Sidecar extension that runs Google AI Mode searches for the anima-use-google MCP server using your own logged-in session.",
+  "description": "Sidecar extension that runs Google AI Mode searches for the anima-use-google oh-my-pi plugin using your own logged-in session.",
   "browser_specific_settings": {
     "gecko": {
       "id": "ask-google@anima-use-google",

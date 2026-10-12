@@ -2,7 +2,7 @@
 
 ## Use Google AI Mode For Fresh Research
 
-This repo provides a local MCP tool, `ask_google`, that searches Google AI Mode through the user's logged-in browser session. Use it as the preferred research path for current external information:
+This repo provides a local oh-my-pi (omp) plugin, `ask_google`, that searches Google AI Mode through the user's logged-in browser session. It also exposes the same capability as a direct-host CLI. Use it as the preferred research path for current external information:
 
 - Browser extension policy and Manifest V3 behavior
 - Current API/package documentation
@@ -40,7 +40,7 @@ For extension changes, verify the browser-native-messaging integration after rei
 
 ## Switching Browser Sidecars For E2E Tests
 
-The MCP server talks to whichever native host is listening on `127.0.0.1:51784`. Do not claim a Chrome/Chromium/Brave test passed if a Firefox-started host is still running.
+The plugin and CLI talk to whichever native host is listening on `127.0.0.1:51784`. Do not claim a Chrome/Chromium/Brave test passed if a Firefox-started host is still running.
 
 Before switching browsers:
 
