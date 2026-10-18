@@ -63,6 +63,7 @@ async function waitForAiCompletion(timeoutMs) {
 
  let lastY = window.scrollY;
  let lastHeight = document.documentElement.scrollHeight;
+ let stableSince = Date.now();
  let mutationOccurred = false;
  let scrollEndAt = 0;
  const mo = new MutationObserver(() => {
