@@ -55,8 +55,8 @@ globalThis.ANIMA_SELECTORS = {
  // AI completion - button-based detection (language independent).
  AI_COMPLETION_BUTTON_SVG: 'button svg[viewBox="3 3 18 18"]',
  AI_COMPLETION_BUTTON_ARIA: '[aria-label*="feedback" i]',
- AI_COMPLETION_TIMEOUT: 10000,
- OVERALL_COMPLETION_TIMEOUT: 10000,
+ AI_COMPLETION_TIMEOUT: 15000,
+ OVERALL_COMPLETION_TIMEOUT: 15000,
  SCROLL_STABILITY_MS: 800,
  SCROLL_POLL_MS: 200,
  // Text-based completion indicators (multilanguage fallback).
