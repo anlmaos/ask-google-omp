@@ -129,6 +129,7 @@ async function waitForAiCompletion(timeoutMs) {
   window.removeEventListener("scroll", onScroll);
   mo.disconnect();
  }
+}
 
  function extractCitationsAndHtml() {
   const mainCol = document.querySelector(MAIN_CONTAINER);
