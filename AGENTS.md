@@ -68,8 +68,8 @@ For Chrome, Chromium, or Brave, load `extension-chromium/` as an unpacked extens
 ```bash
 node native-host/install-chrome-host.cjs --browser chrome --extension-id <id>
 node native-host/install-chrome-host.cjs --browser chromium --extension-id <id>
+node native-host/install-chrome-host.cjs --browser chromium-browser-unstable --extension-id <id>
 node native-host/install-chrome-host.cjs --browser brave --extension-id <id>
-```
 
 Brave uses the Chromium extension. Its native-messaging registration locations are:
 

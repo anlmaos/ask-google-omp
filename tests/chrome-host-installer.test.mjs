@@ -75,3 +75,53 @@ test("Brave native host installer resolves platform-specific locations", () => {
     }
   );
 });
+
+test("chromium-browser-unstable native host installer resolves platform-specific locations", () => {
+  const { parseArgs, resolveManifestTarget } = require("../native-host/install-chrome-host.cjs");
+
+  assert.deepEqual(
+    parseArgs([
+      "node",
+      "script",
+      "--browser",
+      "chromium-browser-unstable",
+      "--extension-id",
+      "abcdefghijklmnopabcdefghijklmnop",
+    ]),
+    {
+      browser: "chromium-browser-unstable",
+      extensionId: "abcdefghijklmnopabcdefghijklmnop",
+    }
+  );
+
+  assert.equal(
+    resolveManifestTarget({
+      browser: "chromium-browser-unstable",
+      platform: "linux",
+      homeDir: "/home/alice",
+    }),
+    "/home/alice/.config/chromium-browser-unstable/NativeMessagingHosts/com.ask.google.json"
+  );
+
+  assert.equal(
+    resolveManifestTarget({
+      browser: "chromium-browser-unstable",
+      platform: "darwin",
+      homeDir: "/Users/alice",
+    }),
+    "/Users/alice/Library/Application Support/Chromium/NativeMessagingHosts/com.ask.google.json"
+  );
+
+  assert.deepEqual(
+    resolveManifestTarget({
+      browser: "chromium-browser-unstable",
+      platform: "win32",
+      homeDir: "C:\\Users\\Alice",
+    }),
+    {
+      manifestPath: "C:\\Users\\Alice\\.anima-use-google\\chromium-browser-unstable\\com.ask.google.json",
+      registryKey:
+        "HKCU\\Software\\Chromium\\NativeMessagingHosts\\com.ask.google",
+    }
+  );
+});

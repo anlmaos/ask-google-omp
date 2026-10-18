@@ -100,8 +100,11 @@ before installing the native host.
    node native-host/install-chrome-host.cjs --browser chromium --extension-id <extension-id>
 
    # Brave
+   # Chromium (unstable)
+   node native-host/install-chrome-host.cjs --browser chromium-browser-unstable --extension-id <extension-id>
+
+   # Brave
    node native-host/install-chrome-host.cjs --browser brave --extension-id <extension-id>
-   ```
 
    The installer writes the manifest or registry entry for your selected browser:
 
@@ -111,6 +114,9 @@ before installing the native host.
    - Chromium on Linux: `~/.config/chromium/NativeMessagingHosts/com.ask.google.json`
    - Chromium on macOS: `~/Library/Application Support/Chromium/NativeMessagingHosts/com.ask.google.json`
    - Chromium on Windows: `HKCU\Software\Chromium\NativeMessagingHosts\com.ask.google`
+   - Chromium (unstable) on Linux: `~/.config/chromium-browser-unstable/NativeMessagingHosts/com.ask.google.json`
+   - Chromium (unstable) on macOS: `~/Library/Application Support/Chromium/NativeMessagingHosts/com.ask.google.json`
+   - Chromium (unstable) on Windows: `HKCU\Software\Chromium\NativeMessagingHosts\com.ask.google`
    - Brave on Linux: `~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json`
    - Brave on macOS: `~/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.ask.google.json`
    - Brave on Windows: `HKCU\Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.ask.google`

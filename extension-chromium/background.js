@@ -60,7 +60,7 @@ async function startSearch(requestId, query, timeoutMs) {
  const effectiveTimeoutMs = timeoutMs || 60000;
  let tab;
  try {
-  tab = await chromeCall(chrome.tabs.create, { url: searchUrl, active: false });
+  tab = await chromeCall(chrome.tabs.create, { url: searchUrl, active: true });
  } catch (err) {
   sendResult(requestId, false, `failed to open tab: ${err.message}`, null, null);
   return;

@@ -201,8 +201,9 @@ async function runSearch(requestId, query, timeoutMs) {
  respond(requestId, true, null, extracted.html, extracted.citations);
 }
 
-extensionApi.runtime.onMessage.addListener((msg) => {
+extensionApi.runtime.onMessage.addListener((msg, sender, sendResponse) => {
  if (!msg || msg.type !== "run-search") return;
+ sendResponse({ ok: true });
  runSearch(msg.requestId, msg.query, msg.timeoutMs).catch((err) => {
   respond(
    msg.requestId,
@@ -212,4 +213,5 @@ extensionApi.runtime.onMessage.addListener((msg) => {
    null
   );
  });
+ return true;
 });
